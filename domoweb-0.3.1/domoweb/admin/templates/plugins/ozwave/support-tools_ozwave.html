@@ -1,0 +1,114 @@
+{% comment %}
+# Copyright 2011 Domogik project
+
+# This file is part of Domogik.
+# Domogik is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Domogik is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Domogik.  If not, see <http://www.gnu.org/licenses/>.
+
+# Author : Nico <nico84dev@gmail.com>
+{% endcomment %}
+
+{% load i18n %}
+
+<script type="text/javascript" src="{{ static_design_url }}/libraries/jstree_pre1.0_fix_1/jquery.jstree.js"></script>
+<script type="text/javascript" src="{{ static_design_url }}/libraries/jstree_pre1.0_fix_1/_lib/jquery.hotkeys.js"></script>
+
+<script type='text/javascript'>
+
+$(function(){
+    $("[id*='loglist']").click(function() {
+         if (plugin_is_running() == false) {
+             $.notification('error', "{% trans "Plugin must be started to list log" %}");
+             return
+         }
+        var msg = {};
+        msg['header'] = {'type': 'req-ack'};
+        msg['request'] =$('#logtype').val();
+        try {
+            msg['lines'] = parseInt($("#nblines").val());
+        } catch (err){
+            $.notification('error',"{% trans "Bad format lines number, check imput :" %}" + $("#nblines").val());
+            return;
+        } 
+        if (this.id == 'loglisttop') {
+            msg['from'] = 'top';
+        } else if (this.id == 'loglistend') {
+                msg['from'] = 'end';
+            } else return;
+        sendMessage(msg, function(data){
+                if (data['error'] =='') {
+                    var log = "";
+                    for (var i = 0; i <data.data['data'].length; i++) {
+                        log = log + data.data['data'][i] + '<br>'
+                        };
+                    $('#logDisplay').html(log);
+                } else {
+                    $('#logDisplay').html('{% trans "Get log error" %} : ' + data.error);
+                    $.notification('error', '{% trans "Get log error" %} : ' + data.error);
+                    };
+                }, 30000);
+    });
+        
+    $("#refreshMemory").click(function(){
+        var msg = {};
+        msg['header'] = {'type': 'req-ack'};
+        msg['request'] ='GetMemoryUsage';
+        $('#memoryUsage').html("{% trans "Memory estimate in progress..." %}" );
+        sendMessage(msg, function(data){
+                if (data['error'] =='') {
+                    var info = "";
+                    var keys = Object.keys(data.data);
+                    keys.sort();
+                    for (var k in keys) {
+                        info = info + keys[k] + ' : ' + data.data[keys[k]] + '<br>'
+                        };
+                    $('#memoryUsage').html(info);
+                } else {
+                    $('#memoryUsage').html('{% trans "Memory usage error" %} : ' + data.error);
+                    $.notification('error', '{% trans "Memory usage error" %} : ' + data.error);
+                    };
+                }, 30000);
+    });
+
+});
+
+</script>
+<section class="subsection">
+    <h2>{% trans "Memory usage" %}&nbsp;&nbsp;
+        <button id='refreshMemory' class='button icon16-action-reset'>{% trans "Refresh" %}</button>
+    </h2><br>
+    <ul class='infos'>
+        <span id='memoryUsage'>{% trans "Click refresh button" %}</span>
+    </ul><br>
+    <h2>{% trans "Logs" %}</h2>
+    <div id='log_list'>
+        <p><label for='nblines'>{% trans 'Number of lines to show' %}:</label>
+        <input type='text' id='nblines' name='nblines' value="50" />
+        <button id='loglisttop' class='button icon16-action-reset'>{% trans "View from beginning" %}</button>
+        <button id='loglistend' class='button icon16-action-reset'>{% trans "View until end" %}</button>
+        <select id='logtype' class='listes'>
+            <option value="GetLog">plugin log</option>
+            <option value="GetLogOZW">Openzwave log</option>
+        </select></p>
+    <ul class='infos'>
+        <div id='logDisplay' style="height:300px;overflow:auto;">{% trans "Click refresh button" %}</div>
+    </ul>        
+    </div><br>
+    <h2>{% trans "Recognized manufacturers and products." %}</h2>
+        <li>
+        <span class='label'>{% trans "Openzwave path configuration" %}:</span>&nbsp;<span class='subtitle' id='confpath2'><u>{% trans "Undefined" %}</u></span>
+        </li>
+    <ul class='infos'>
+        <div id='productTree' style="height:800px;overflow:auto;"></div>
+    </ul>
+</section>

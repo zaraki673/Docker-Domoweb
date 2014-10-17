@@ -1,0 +1,21 @@
+syntax: glob
+.svn
+*.orig
+*.rej
+.DS_Store
+:2e*
+.Apple*
+.AppleDouble/
+.AppleDesktop/
+.AppleDB/
+*.pyc
+*.pyoeggs/*
+eggs
+bin
+.installed.cfg
+develop-eggs/
+db.sqlite
+settings_local.py
+domogik.sqlite
+dist/ 
+build/

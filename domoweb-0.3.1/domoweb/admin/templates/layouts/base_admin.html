@@ -1,0 +1,128 @@
+{% extends "layouts/global.html" %}
+
+{% comment %}
+# Copyright 2011 Domogik project
+
+# This file is part of Domogik.
+# Domogik is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Domogik is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Domogik.  If not, see <http://www.gnu.org/licenses/>.
+
+# Author : Cédric Trévisan <cedric@domogik.org>
+{% endcomment %}
+{% load i18n %}
+
+{% block global_css %}
+<link href="{{ static_design_url }}/admin/css/layout.with_nav.css" rel="stylesheet" type="text/css" />
+<link href="{{ static_design_url }}/common/css/layout.content.css" rel="stylesheet" type="text/css" />
+<link href="{{ static_design_url }}/common/css/ui-buttons.css" rel="stylesheet" type="text/css" />
+<link href="{{ static_design_url }}/common/css/dmg.login.css" rel="stylesheet" type="text/css" />
+
+    <link href="{{ static_design_url }}/common/css/ui-forms.css" rel="stylesheet" type="text/css" />
+    <link href="{{ static_design_url }}/common/css/dmg.editable-icon.css" rel="stylesheet" type="text/css" />
+    <link href="{{ static_design_url }}/common/css/ui-nav2.css" rel="stylesheet" type="text/css" />
+    <link href="{{ static_design_url }}/common/css/ui-dialog.css" rel="stylesheet" type="text/css" />
+    <link href="{{ static_design_url }}/common/css/ui-tabs.css" rel="stylesheet" type="text/css" />
+    <link href="{{ static_design_url }}/common/css/ui-processing.css" rel="stylesheet" type="text/css" />
+    <link href="{{ static_design_url }}/common/css/ui-page-section.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block global_js_include %}
+<script type="text/javascript" src="{{ static_design_url }}/common/js/dmg.icons.js"></script>
+<script type="text/javascript" src="{{ static_design_url }}/common/js/dmg.login.js"></script>
+
+    <script type="text/javascript" src="{{ static_design_url }}/libraries/jquery.timers-1.2/jquery.timers-1.2.js"></script>
+    <script type="text/javascript" src="{{ static_design_url }}/common/js/dmg.external-links.js"></script>
+    <script type="text/javascript" src="{{ static_design_url }}/admin/js/dmg.ajax.js"></script>
+    <script type="text/javascript" src="{{ static_design_url }}/common/js/dmg.tabs.js"></script>
+    <script type="text/javascript" src="{{ static_design_url }}/common/js/dmg.forms.js"></script>
+    <script type="text/javascript" src="{{ static_design_url }}/common/js/dmg.editable-icon.js"></script>
+    <script type="text/javascript" src="{{ static_design_url }}/common/js/dmg.processing.js"></script>
+    <script type="text/javascript" src="{{ static_design_url }}/common/js/dmg.tooltips.js"></script>
+    <script type="text/javascript" src="{{ static_design_url }}/common/js/dmg.dialogs.js"></script>
+    <script type="text/javascript" src="{{ static_design_url }}/admin/js/page-admin.js"></script>
+    <script type="text/javascript">
+        // <![CDATA[
+        $(document).ready(function(){
+            getPluginsList();
+            {% if request.session.normal_mode %}
+            getHostsList();
+            {% endif %}
+            $('#plugins_list li a[title]').tooltip_right();
+            
+        {% if not request.session.normal_mode %}
+            $.notification("debug", "{% trans "Domogik in development mode. Plugins are running from the sources" %}");
+        {% endif %}  
+        });
+        // ]]>
+    </script>
+{% endblock %}
+
+{% block body %}
+    <header id="mainheader">
+        <a href="{% url index_view %}" id="logo"><img src="{{ static_design_url }}/common/images/logo_domogik.png" alt="Domogik logo" /></a>
+        <div id="title">{% trans "Domogik" %} <span id="subtitle">{% trans "Free home automation under Linux" %}</span> </div>
+    </header>
+    <nav id="nav1">
+        <ul>
+            <li><a href="{% url page_view %}" class="{{ nav1_show }}">{% trans "Visualization" %}<span class='description'>{% trans "View, Control your house" %}</span></a></li>
+            <li><a href="{% url admin_index_view %}" class="{% if not is_user_connected %}admin_required {% endif %}{{ nav1_admin }}">{% trans "Administration" %}<span class='description'>{% trans "Configure, Manage" %}</span></a></li>
+            <li class='help'><a href="http://wiki.domogik.org/End_user_documentation" target='_blank'>{% trans "Help" %}<span class='description'>{% trans "External Wiki page" %}</span></a></li>
+            <li class="login">
+                {% if not is_user_connected %}
+                    <a href="{% url login_view %}">{% trans "Log in" %}<span class='description'>{% trans "Identify yourself" %}</span></a>
+                {% else %}
+                    <a href="{% url logout_view %}">{% trans "Log out" %}<span class='description'>{% trans "Disconnect" %} {{ request.session.user.first_name }} ({{ request.LANGUAGE_CODE }})</span></a>
+                {% endif %}
+            </li>
+        </ul>
+    </nav>
+    <div id="content-bgnd"> 
+    <section id="mainsection">
+        <div class="columnleft">
+            <nav id="nav2">
+                <div class="subnav2"><a href="#">{% trans "Organization" %}</a></div>
+                <ul>
+                    <li><a href="{% url admin_organization_devices_view %}" class='{{ nav2_organization_devices }}'>{% trans "Devices" %}</a></li>
+                    <li><a href="{% url admin_organization_pages_view %}" class='{{ nav2_organization_pages }}'>{% trans "Pages" %}</a></li>
+                </ul>
+                <div class="subnav2"><a href="#">{% trans "Management" %}</a></div>
+                <ul>
+                    <li><a href="{% url admin_management_accounts_view %}" class='{{ nav2_management_accounts }}'>{% trans "Accounts" %}</a></li>
+                </ul>
+                <div class="subnav2"><a href="#">{% trans "Plugins" %}</a></div>
+                <ul id="plugins_list">
+                </ul>
+                {% if request.session.normal_mode %}
+                <div class="subnav2"><a href="#">{% trans "Hosts" %}</a></div>
+                <ul id="hosts_list">
+                </ul>
+                {% endif %}
+                <div class="subnav2"><a href="#">{% trans "Core" %}</a></div>
+                <ul>
+                    <li><a href="{% url admin_core_helpers_view %}" class='icon32-menu-helpers {{ nav2_tools_helpers }}'>{% trans "Helpers" %}</a></li>
+                    <li><a href="{% url admin_core_rinor_view %}" class='icon32-menu-rinor {{ nav2_tools_rinor }}'>{% trans "RINOR" %}</a></li>
+                    <li><a href="{% url admin_core_pyinfo_view %}" class='icon32-menu-pyinfo {{ nav2_tools_pyinfo }}'>{% trans "Python" %}</a></li>
+                    <li><a href="{% url admin_core_djangoinfo_view %}" class='icon32-menu-djangoinfo {{ nav2_tools_djangoinfo }}'>{% trans "Django" %}</a></li>
+                    <li><a href="{% url admin_core_domowebdata_view %}" class='icon32-menu-domowebdata {{ nav2_tools_domowebdata }}'>{% trans "Domoweb Data" %}</a></li>
+                    <li><a href="{% url admin_devicesstats_view %}" class='icon32-menu-devicesstats {{ nav2_tools_devicesstats }}'>{% trans "Devices Stats" %}</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="columnright">
+            <header id='contentheader'>{% block banner %}{% endblock %}</header>
+            {% block right %}{% endblock %}
+        </div>
+    </section>
+    </div>
+{% endblock %}
+
